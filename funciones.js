@@ -1,45 +1,58 @@
-//Middleware
+const datos = require('./datos');
+let users = datos.users;
+let menu = datos.menu;
+let activeUser = datos.activeUser;
+let pedidos = datos.pedidos;
+let nuevomenu = datos.nuevomenu;
+let numOrden = datos.numOrden;
+let mediosPagos = datos.mediosPagos;
 //Validar que el usuario no esta duplicado cuando se registra
 
+function validarUsuario(user,req,res) {
 
+    let userDuplicado = false;
+    let mailDuplicado = false;
 
-
-
-function validarUsuario(user) {
-    console.log(menu);
-    let duplicado = false;
-    console.log('aca2');
-  
     if (users.length === 0) {
-        console.log('aca3');
         if (user.isAdmin === undefined) {
             user.isAdmin = false;
         }
         users.push(user)
+        res.status(201).send('Usuario creado')
+       
         return;
-    } else {console.log('aca4');
+    } else {
 
 
         if (users.length > 0) {
             for (let i = 0; i < users.length; i++) {
-                let userR = users[i].name
+                const userR = users[i].name
+                const userMail = users[i].mail
 
 
 
                 if (userR === user.name) {
-                    duplicado = true;
+                    userDuplicado = true;
                     console.log("usuario duplicado")
-
+                    res.status(401).send('Usuario duplicado')
+                    return;
                 }
+                if (userMail === user.mail){
+                    mailDuplicado = true;
+                    console.log("Mail duplicado")
+                    res.status(401).send('mail duplicado')
+                    return;
+                }
+                
 
 
-
-                if (i + 1 === users.length && duplicado === false) {
+                if (i + 1 === users.length && userDuplicado === false && mailDuplicado === false) {
                     if (user.isAdmin === undefined) {
                         user.isAdmin = false;
                     }
                     console.log("EjecucionPush");
                     users.push(user)
+                    res.status(201).send('Usuario creado')
                     return;
                 }
             }
@@ -73,38 +86,69 @@ function hacerPedido(activeUser, req, res) {
 
     if (validarLogin(activeUser)) {
         // Obtener index del Usuario 
+
         let indexUser = users.findIndex(infind => infind === activeUser)
         let indexPedido = pedidos.length;
         let fechams = new Date()
         let fecha = fechams.toDateString();
-        let pedidoNuevo = { fecha: fecha, idUser: indexUser, idPedido: indexPedido, idmeal: req.body.pedido, cantidad: req.body.cantidad, metododepago: req.body.metododepago, estado: '0' }
-        //Agregar una validacion para num de pedidos que no existen 
-        pedidos.push(pedidoNuevo);
+        //let pedidoNuevo = {}        
+        for (const item of req.body) {
 
-        console.log('El ultimo pedido fue', pedidoNuevo);
-        console.log('La lista de pedido es', pedidos);
+            const pedidoNuevo = {
+                fecha,
+                idUser: indexUser,
+                idPedido: numOrden,
+                idMeal: item.pedido,
+                cantidad: item.cantidad,
+                metododepago: item.metododepago,
+                estado: '0'
+            }
 
-    } else {
-        res.send('Debe estar logeado');
+            if (validarMenu(pedidoNuevo)&validarMetodo(pedidoNuevo)) {
+                pedidos.push(pedidoNuevo);
+              // agregar al final del ciclo  res.status(201).send('Pedido creado')
+                
+
+            } else {
+                console.log('Idmeal o metodo invalido');
+                res.status(400).send('Idmeal o metodo invalido')
+                
+            }
+
+
+
+        }
+
+        console.log(pedidos);
+
     }
+    numOrden = numOrden + 1;
 }
 
+
+//OK
 function confirmarPedido(activeUser, req, res) {
     if (validarLogin(activeUser)) {
         const pedidoSeleccionado = { pedidoSeleccionado: req.body.pedidoSeleccionado };
 
         // let indexUser = users.findIndex(infind => infind === activeUser)
         for (let i in pedidos) {
-
+            console.log('For ejecutado, valores')
+            console.log(i)
+            console.log(pedidoSeleccionado.pedidoSeleccionado)
             if (pedidos[i].idPedido == pedidoSeleccionado.pedidoSeleccionado) {
+                
                 pedidos[i].estado = 1;
                 console.log('El pedido ha sido confirmado', pedidos);
+                res.status(201).send('Pedido confirmado')
+                return;
             }
         }
     }
 }
-
+//ok
 function verHistorial(activeUser, req, res) {
+
     if (validarLogin(activeUser)) {
         const indexUser = users.findIndex(infind => infind === activeUser)
         let showHistorial = [];
@@ -125,11 +169,12 @@ function verHistorial(activeUser, req, res) {
 
     }
 }
+// OK
 function verPedidos(activeUser, req, res) {
     if (validarAdmin(activeUser)) {
-        let verPedidos = { idUser: req.body.idUser, idPedido: req.body.idPedido }
+        let verPedidos = { idUser: req.body.idUser, estado: req.body.estado }
         //4 casos, idUser NA, idUser y idPedido NA, idPedido NA o ambos datos son enviados 
-        if (verPedidos.idUser === "" & verPedidos.idPedido === "") {
+        if (verPedidos.idUser === "" & verPedidos.estado === "") {
             let pedidosMatch = [];
             for (let i in pedidos) {
                 pedidosMatch.push(pedidos[i]);
@@ -138,39 +183,158 @@ function verPedidos(activeUser, req, res) {
                 console.log(pedidos.length - 1)
                 if (i == pedidos.length - 1) {
                     console.log('ejecutando res.json');
-                    res.json(pedidos[i]);
+                    res.json(pedidosMatch);
                 }
 
             }
             // Mostrar TODOS LOS PEDIDOS
         }
-        if (verPedidos.idUser === "" & verPedidos.idPedido != "") {
+        if (verPedidos.idUser != "" & verPedidos.estado === "") {
+            let pedidosMatch = [];
             for (let i in pedidos) {
-
-                if (pedidos[i].idUser == idUser) {
-                    res.json(pedidos[i]);
+                console.log('Id User match');
+                if (pedidos[i].idUser == verPedidos.idUser) {
+                    pedidosMatch.push(pedidos[i]);
+                    console.log(pedidosMatch);
                     console.log('Mostrando un elemento match IdUser')
-
+                    if (i == pedidos.length - 1) {
+                        res.json(pedidosMatch[i]);
+                    }
                     // Mostrar pedidos que matcheen idUser
                 }
             }
-            if (verPedidos.idUser != "" & verPedidos.idPedido === "") {
-                // Mostrar pedidos que matcheen idPedido
+
+        }
+
+        if (verPedidos.idUser === "" & verPedidos.estado != "") {
+            let pedidosMatch = [];
+            for (let i in pedidos) {
+                console.log('Status match');
+                if (pedidos[i].estado == verPedidos.estado) {
+                    pedidosMatch.push(pedidos[i]);
+                    console.log(pedidosMatch);
+                    console.log('Mostrando un elemento Status match')
+                    if (i == pedidos.length - 1) {
+                        res.json(pedidosMatch);
+                    }
+                    // Mostrar pedidos que matcheen idUser
+                }
             }
-            if (verPedidos.idUser != "" & verPedidos.idPedido != "") {
-                // Mostrar pedidos que matcheen idUser y  idPedido
+
+        }
+        if (verPedidos.idUser != "" & verPedidos.estado != "") {
+            let pedidosMatch = [];
+            for (let i in pedidos) {
+                console.log('Status & IdUser match');
+                if (pedidos[i].estado == verPedidos.estado && pedidos[i].idUser == verPedidos.idUser) {
+                    pedidosMatch.push(pedidos[i]);
+                    console.log(pedidosMatch);
+                    console.log('Mostrando un elemento Status & Iduser match')
+                    if (i == pedidos.length - 1) {
+                        res.json(pedidosMatch);
+                    }
+                    // Mostrar pedidos que matcheen idUser
+                }
             }
         }
-    } else {
-
-        //  res.send("No tiene privilegios de administrador");
     }
 }
-function adminEditarestado(activeuser, req, res) {
+//NOT OK
+function adminEditarestado(activeUser, req, res) {
     if (validarAdmin(activeUser)) {
         const id = { idPedido: req.body.idPedido }
         const nuevoEstado = { nuevoEstado: req.body.nuevoEstado }
-        // Editar pedido de ese ID con ese estado
+        for (let i in pedidos) {
+            console.log('For ejecutado, valores')
+            console.log(i)
+
+            if (pedidos[i].idPedido == id.idPedido) {
+                console.log('Ejecutado')
+                pedidos[i].estado = nuevoEstado.nuevoEstado;
+                console.log('El nuevo estado es', nuevoEstado.nuevoEstado);
+            }
+        }
+    }
+}
+//OK
+function validarMenu(pedidoNuevo) {
+
+    for (let j = 0; j < menu.length; j++) {
+
+        if (pedidoNuevo.idMeal == menu[j].id) {
+            return true;
+        }
+
+
+
+    }
+}
+//OK
+function editarMenu(activeUser, req, res) {
+    if (validarAdmin(activeUser)) {
+        const id = { idmenu: req.body.idmenu }
+        const newmeal = { meal: req.body.meal }
+
+        for (let i in menu) {
+            console.log('For ejecutado, valores')
+            console.log(i)
+            console.log(id.idmenu)
+
+            if (menu[i].id == id.idmenu) {
+                menu[i].meal = newmeal.meal;
+                console.log(menu)
+
+            }
+        }
+    }
+}
+function eliminarMenu(activeUser, req, res) {
+    if (validarAdmin(activeUser)) {
+        const id = { idmenu: req.body.idmenu }
+        for (let i in menu) {
+            if (menu[i].id == id.idmenu) {
+
+menu.splice(i,1);
+console.log(menu)
+
+            }
+
+        }
+    }
+}
+
+function crearMedio (activeUser, req, res){
+    if (validarAdmin(activeUser)){
+        const idMedio = mediosPagos.length;
+
+        const nuevoMedio = {id: idMedio, metodo: req.body.metodo}
+
+        mediosPagos.push(nuevoMedio);
+        
+
+console.log(mediosPagos);
+     
+
+    }
+}
+function mostrarMedio (activeUser, req, res){
+    if (validarAdmin(activeUser)){
+console.log(mediosPagos)
+       res.send(mediosPagos);
+
+    }
+}
+function validarMetodo(pedidoNuevo) {
+
+    for (let j = 0; j < mediosPagos.length; j++) {
+//console.log(pedidoNuevo.metododepago)
+//console.log(mediosPagos[j].id)
+        if (pedidoNuevo.metododepago == mediosPagos[j].id) {
+            return true;
+        }
+
+
+
     }
 }
 
@@ -184,6 +348,10 @@ module.exports = {
     verHistorial,
     verPedidos,
     hacerPedido,
-    adminEditarestado
+    adminEditarestado,
+    editarMenu,
+    eliminarMenu,
+    crearMedio,
+    mostrarMedio
 
 };
