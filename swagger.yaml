@@ -1,0 +1,302 @@
+openapi: 3.0.0
+info:
+  title: Sample API
+  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  version: 0.1.9
+servers:
+  - url: http://localhost:2001/
+    description: asdasd
+  
+paths:
+  /users:
+    get:
+      summary: Devuelve la lista de usuarios
+      description: Muestra array de usuarios
+      responses:
+        '200':    # status code
+          description: array Json de usuarios
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: string
+    post:
+      summary: Registro de usuario.
+      description: Crear usuario nuevo a partir de JSON
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'admin'
+                password:
+                  type: string
+                  example: '123'
+                mail:
+                  type: string
+                  example: 'asd@asd.com'
+                isAdmin:
+                  type: string
+                  example: 'true'
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema: 
+                type: string
+
+  /users/login:
+    post:
+      summary: login usuario
+      description: Logear con usuario y password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'admin'
+                password:
+                  type: string
+                  example: '123'
+               
+      responses:
+        '201':
+          description: Logeado
+          content:
+            application/json:
+              schema: 
+                type: string
+              
+  /users/verpedidos:
+    get:
+      summary: Ver pedidos
+      description: Visualizar pedidos de usuario con Id o estado (solo admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idUser:
+                  type: string
+                  example: '0'
+                estado:
+                  type: string
+                  example: '0'
+      responses:
+        '201':
+          description: Visualizacion de pedidos OK
+          content:
+            application/json:
+              schema: 
+                type: string
+
+  /users/pedido:
+    get:
+      summary: Ver historial
+      description: Ver historial de pedidos (ususarios solamente)
+
+      responses:
+        '201':
+          description: Visualizacion de historial OK
+          content:
+            application/json:
+              schema: 
+                type: string
+    put:
+      summary: Confirmar pedido
+      description: confirmar pedido (solo usuarios), ingresando numero de pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pedidoSeleccionado:
+                  type: string
+                  example: '1'
+      responses:
+        '201':
+          description: Pedido confirmado
+          content:
+            application/json:
+              schema: 
+                type: string
+    post:
+      summary: Realizar pedido
+      description: Realizar pedido (se puede pedir mas de un item a la vez mandandolo como array de objetos)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pedido:
+                  type: string
+                  example: '1'
+                cantidad:
+                  type: string
+                  example: '1'
+                metododepago:
+                  type: string
+                  example: '1'
+      responses:
+        '201':
+          description: Pedido confirmado
+          content:
+            application/json:
+              schema: 
+                type: string
+  
+    
+  /users/pedido/admineditarestado:
+    put:
+      summary: Editar estado
+      description: Editar estados de los usuarios (Solo para admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idPedido:
+                  type: string
+                  example: '1'
+                nuevoEstado:
+                  type: string
+                  example: '2'
+      responses:
+        '201':
+          description: Estado editado
+          content:
+            application/json:
+              schema: 
+                type: string                
+  /users/menu:
+    get:
+      summary: Ver menu
+      description: Devuelve la lista de comidas en el menu
+      responses:
+        '200':    # status code
+          description: array Json de comidas en el menu
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: string
+    post:
+      summary: Crear comida
+      description: Crear comida nueva para el menu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meal:
+                  type: string
+                  example: 'Albondigas'
+             
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema: 
+                type: string                    
+    put:
+      summary: editar menu
+      description: Crear comida nueva para el menu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idmenu:
+                  type: string
+                  example: '3'
+                meal:
+                  type: string
+                  example: 'Albondigas'
+             
+      responses:
+        '201':
+          description: Comida editada
+          content:
+            application/json:
+              schema: 
+                type: string                    
+    delete:
+      summary: Eliminar Comida
+      description: Elimina una comida del menu (Solo admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idmenu:
+                  type: string
+                  example: '1'
+             
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema: 
+                type: string    
+
+  /users/mediosdepago:
+    get:
+      summary: Ver meedios de pago
+      description: Devuelve la lista de medios de pago
+      responses:
+        '200':    # status code
+          description: Medios de pago OK
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: string
+    post:
+      summary: Crear medio de pago
+      description: Ingresar nuevo metodo de pago en el array (solo admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metodo:
+                  type: string
+                  example: 'Bitcoin'
+             
+      responses:
+        '201':
+          description: Nuevo metodo creado
+          content:
+            application/json:
+              schema: 
+                type: string           
