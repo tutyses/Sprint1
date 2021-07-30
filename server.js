@@ -5,7 +5,7 @@ const app = express()
 
 app.use(express.json())
 
-const funciones = require('./funciones.js');
+const funciones = require('./src/funciones/funciones.js');
 const validarUsuario = funciones.validarUsuario;
 const validarAdmin = funciones.validarAdmin;
 const validarLogin = funciones.validarLogin;
@@ -19,7 +19,7 @@ const eliminarMenu = funciones.eliminarMenu;
 const editarMedio = funciones.editarMedio;
 const mostrarMedio = funciones.mostrarMedio;
 const crearMedio = funciones.crearMedio;
-const datos = require('./datos');
+const datos = require('./src/datos');
 const { documentacionSwagger } = require('./swagger.js');
 let users = datos.users;
 let menu = datos.menu;
@@ -30,7 +30,13 @@ let numOrden = datos.numOrden;
 //Rutas
 //app.use(require('./routes/index'));
 app.get('/users', (req, res) => {
+    if(users.length != 0){
+
+    
     res.json(users)
+}else{
+    res.send('No hay usuarios en la base de datos')
+}
 })
 
 app.post('/users', (req, res) => {
@@ -101,7 +107,7 @@ app.put('/users/pedido/admineditarestado', (req, res) => {
     adminEditarestado(activeUser, req, res);
 
 
-    res.status(201).send()
+ //   res.status(201).send()
 })
 
 app.post('/users/menu', (req, res) => {
@@ -109,11 +115,17 @@ app.post('/users/menu', (req, res) => {
     idNew = menu.length;
 
     nuevomenu = { id: idNew, meal: req.body.meal }
-    if (validarAdmin(activeUser)) {
-        menu.push(nuevomenu);
-        console.log(menu)
+    if (validarAdmin(activeUser,req,res)) {
+        if (req.body.meal != undefined & req.body.meal != ''){
+            menu.push(nuevomenu);
+            console.log(menu)
+            res.status(201).send('Menu creado')
+        }else{
+            res.status(400).send('Error en la creacion de menu')
+        }
+      
     }
-    res.status(201).send()
+    
 })
 
 app.get('/users/menu', (req, res) => {
