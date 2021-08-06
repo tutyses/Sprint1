@@ -78,7 +78,11 @@ paths:
                 type: string
               
   /users/verpedidos:
+<<<<<<< HEAD
     post:
+=======
+    get:
+>>>>>>> 6a158cffd9988c6174dd912f1080257661b91db3
       summary: Ver pedidos
       description: Visualizar pedidos de usuario con Id o estado (solo admin)
       requestBody:

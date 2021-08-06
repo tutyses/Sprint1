@@ -95,7 +95,11 @@ app.put('/users/pedido', (req, res) => {
     res.status(201).send()
 })
 
+<<<<<<< HEAD
 app.post('/users/verpedidos', (req, res) => {
+=======
+app.get('/users/verpedidos', (req, res) => {
+>>>>>>> 6a158cffd9988c6174dd912f1080257661b91db3
 
 
     verPedidos(activeUser, req, res);
@@ -170,4 +174,10 @@ app.listen(2001, ()=> {documentacionSwagger(app);console.log('Running 2001')} )
 
 
 
+<<<<<<< HEAD
 // 06 08 2021
+=======
+
+//Falta hacer rutas, arreglar MIddleware, Pulir Catches y hacer Swagger
+//Añadir respuesta al envio de CRUD's
+>>>>>>> 6a158cffd9988c6174dd912f1080257661b91db3
